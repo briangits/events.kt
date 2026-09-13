@@ -17,7 +17,6 @@ class JSONSerializer(val json: Json) : Serializer {
         json.decodeFromString(serializer, bytes.decodeToString())
 }
 
-fun json(block: () -> Json = { Json {} }): JSONSerializer = JSONSerializer(json = block())
 /**
  * Creates a [JSONSerializer] using the provided configuration [block].
  *
@@ -25,3 +24,4 @@ fun json(block: () -> Json = { Json {} }): JSONSerializer = JSONSerializer(json 
  * Defaults to a default [Json] configuration.
  * @return A new [JSONSerializer] instance.
  */
+fun json(block: () -> Json = { Json }): JSONSerializer = JSONSerializer(json = block())
