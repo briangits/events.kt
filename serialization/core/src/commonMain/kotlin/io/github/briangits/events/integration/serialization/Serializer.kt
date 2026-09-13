@@ -30,3 +30,17 @@ interface Serializer {
      */
     fun <T> deserialize(bytes: ByteArray, serializer: KSerializer<T>): T
 }
+
+/**
+ * Serializers the given [value] into a [ByteArray],
+ * deriving the serializer from the reified type [T]
+ */
+inline fun <reified T> Serializer.serialize(value: T): ByteArray =
+    serialize(value, serializer<T>())
+
+/**
+ * Deserializers the given [bytes] into an object of type [T],
+ * deriving the serializer from the reified type [T]
+ */
+inline fun <reified T> Serializer.deserialize(bytes: ByteArray): T =
+    deserialize(bytes, serializer<T>())
