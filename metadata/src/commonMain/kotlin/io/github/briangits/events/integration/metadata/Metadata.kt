@@ -14,6 +14,23 @@ import kotlinx.serialization.serializer
  * @property serializer The [Serializer] used for encoding and decoding metadata values.
  */
 class Metadata(private val serializer: Serializer) {
+
+    /**
+     * Creates a new [Metadata] instance and applies the provided [block] for configuration.
+     *
+     * Example:
+     * ```
+     * val metadata = Metadata(serializer) {
+     *     "correlationId" to "123-abc"
+     *     "timestamp" to Clock.System.now()
+     * }
+     * ```
+     *
+     * @param serializer The [Serializer] used for encoding and decoding metadata values.
+     * @param block A configuration block executed on the new [Metadata] instance.
+     */
+    constructor(serializer: Serializer, block: Metadata.() -> Unit) : this(serializer) { block() }
+
     /**
      * Creates a new [Metadata] instance with the given [Serializer] and initial [entries].
      *
@@ -87,7 +104,7 @@ class Metadata(private val serializer: Serializer) {
      *
      * Example:
      * ```
-     * "userId" to 123
+     * Metadata(serializer) { "userId" to 123 }
      * ```
      */
     inline infix fun <reified T> String.to(value: T) = set(this, value)
@@ -99,11 +116,4 @@ class Metadata(private val serializer: Serializer) {
      * @return The raw byte array that was removed, or `null` if the key was not found.
      */
     fun clear(key: String) = entries.remove(key).also { cached.remove(key) }
-
-    /**
-     * Operator overload for [clear].
-     *
-     * @param key The metadata key to remove.
-     */
-    operator fun minusAssign(key: String) { clear(key) }
 }
