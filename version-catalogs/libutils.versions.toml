@@ -1,5 +1,10 @@
 [versions]
 buildKonfig = "0.22.0"
+mavenPublish = "0.37.0"
 
 [plugins]
+# Build Config
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
+
+# Maven Publish
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

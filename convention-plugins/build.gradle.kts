@@ -6,6 +6,15 @@ plugins {
 group = "io.github.briangits.events.integration.conventions"
 version = "0.0.1"
 
+gradlePlugin {
+    plugins {
+        create("publishing") {
+            id = "$group.publishing"
+            implementationClass = "$group.publishing.PublishPlugin"
+        }
+    }
+}
+
 fun DependencyHandlerScope.plugin(plugin: Provider<PluginDependency>) {
     val artifact =
         plugin.get().let {
@@ -18,4 +27,6 @@ fun DependencyHandlerScope.plugin(plugin: Provider<PluginDependency>) {
 dependencies {
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
+
+    plugin(libutils.plugins.mavenPublish)
 }
