@@ -4,7 +4,7 @@
             <img src="./docs/images/send.png" width="100" alt="events.kt">
         </td>
         <td valign="middle">
-            <h1>integration-events</h1>
+            <h1>events.kt</h1>
         </td>
     </tr>
 </table>
@@ -14,7 +14,7 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.4.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
-`integration-events` provides a simple, type-safe API for publishing and consuming 
+`events.kt` provides a simple, type-safe API for publishing and consuming 
 integration events without coupling your application to a specific message broker.
 
 ---
@@ -63,18 +63,18 @@ consumer.subscribe<UserCreated> { event, metadata ->
 ```
 ---
 
-See the [documentation](https://briangits.github.io/integration-events/integration-events/getting-started)
+See the [documentation](https://briangits.github.io/events.kt/events.kt/getting-started)
 for a complete guide on using the library.
 
 ---
 ## Project Configuration
 
-`integration-events` provides a Gradle plugin that configures code generation for event definitions 
+`events.kt` provides a Gradle plugin that configures code generation for event definitions 
 and registration helper functions.
 
 You can also use the library without the Gradle plugin by registering event definitions manually.
 
-See the [manual registration guide](https://briangits.github.io/integration-events/registry/manual-registration) for details.
+See the [manual registration guide](https://briangits.github.io/events.kt/registry/manual-registration) for details.
 
 ### Apply the plugin
 ```kotlin
@@ -129,7 +129,7 @@ val publisher = KafkaPublisher(brokers = listOf("localhost:9092")) {
 }
 ```
 
-See [creating a publisher](https://briangits.github.io/integration-events/integration-events/relays/publishers) for a complete guide.
+See [creating a publisher](https://briangits.github.io/events.kt/events.kt/relays/publishers) for a complete guide.
 
 ##### 3) Create a producer
 
@@ -175,7 +175,7 @@ val relay = KafkaConsumer(brokers = listOf("localhost:9092"), groupId = "my-grou
 }
 ```
 
-See [creating a relay](https://briangits.github.io/integration-events/integration-events/relays/consumers) for a complete guide.
+See [creating a relay](https://briangits.github.io/events.kt/events.kt/relays/consumers) for a complete guide.
 
 #### 3) Create a consumer:
 
@@ -215,20 +215,20 @@ The library provides a unified API for publishing and consuming events,
 while allowing the underlying broker implementation to be swapped independently.
 
 Currently supported brokers:
-- **[Kafka](https://bringits.github.io/integration-events/relays/kafka)** - Kafka publisher and consumer implementations, 
+- **[Kafka](https://bringits.github.io/events.kt/relays/kafka)** - Kafka publisher and consumer implementations, 
     currently only supported on JVM & Native targets
 
 ---
 
 ## Documentation
-- **[Getting Started](https://briangits.github.io/integration-events/getting-started)**
-- **[Defining Events](https://briangits.github.io/integration-events/defining-events)**
-- **[Creating a Producer](https://briangits.github.io/integration-events/producers/introduction)**
-- **[Publishing Events](https://briangits.github.io/integration-events/)**
-- **[Creating a Consumer](https://briangits.github.io/integration-events/consumers/introduction)**
-- **[Consuming Events](https://briangits.github.io/integration-events/consumers/consuming)**
-- **[Configuring Serialization](https://briangits.github.io/integration-events/integration-events/serialization)**
-- **[Brokers & Relays](https://briangits.github.io/integration-events/relays)**
+- **[Getting Started](https://briangits.github.io/events.kt/getting-started)**
+- **[Defining Events](https://briangits.github.io/events.kt/defining-events)**
+- **[Creating a Producer](https://briangits.github.io/events.kt/producers/introduction)**
+- **[Publishing Events](https://briangits.github.io/events.kt/)**
+- **[Creating a Consumer](https://briangits.github.io/events.kt/consumers/introduction)**
+- **[Consuming Events](https://briangits.github.io/events.kt/consumers/consuming)**
+- **[Configuring Serialization](https://briangits.github.io/events.kt/events.kt/serialization)**
+- **[Brokers & Relays](https://briangits.github.io/events.kt/relays)**
 
 ## License
 

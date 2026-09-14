@@ -28,7 +28,7 @@ dependencyResolutionManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "integration-events"
+rootProject.name = "events-kt"
 
 include(":common")
 include(":metadata")
@@ -53,4 +53,3 @@ include(":serialization:json")
 
 include(":producer")
 include(":consumer")
-
