@@ -56,3 +56,5 @@ include(":serialization:json")
 
 include(":producer")
 include(":consumer")
+
+include(":version-catalog")
