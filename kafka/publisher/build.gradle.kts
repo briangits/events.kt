@@ -1,5 +1,8 @@
 plugins {
     alias(kt.plugins.multiplatform)
+
+    // Publishing
+    id("io.github.briangits.events.integration.conventions.publishing")
 }
 
 kotlin {
@@ -27,4 +30,9 @@ kotlin {
             implementation(testcontainers.kafka)
         }
     }
+}
+
+library {
+    name = "kafka-producer"
+    description = "Kafka message publisher implementation for events.kt"
 }

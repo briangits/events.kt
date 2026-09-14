@@ -8,6 +8,9 @@ plugins {
     alias(kt.plugins.jvm) apply false
     alias(kt.plugins.multiplatform) apply false
     alias(kt.plugins.multiplatform.android) apply false
+
+    // Publishing
+    alias(libutils.plugins.mavenPublish) apply false
 }
 
 group = "io.github.briangits.events.integration"

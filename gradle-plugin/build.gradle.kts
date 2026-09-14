@@ -9,7 +9,11 @@ plugins {
     alias(kt.plugins.jvm)
     `java-gradle-plugin`
 
+    // Build Config
     alias(libutils.plugins.buildKonfig)
+
+    // Publishing
+    id("io.github.briangits.events.integration.conventions.publishing")
 }
 
 buildkonfig {
@@ -29,6 +33,11 @@ gradlePlugin {
             implementationClass = "${project.group}.IntegrationEventsPlugin"
         }
     }
+}
+
+library {
+    name = "gradle-plugin"
+    description = "Gradle plugin for configuring events.kt integration events code generation"
 }
 
 fun DependencyHandlerScope.plugin(plugin: Provider<PluginDependency>) {

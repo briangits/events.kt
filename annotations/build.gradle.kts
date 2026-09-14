@@ -4,6 +4,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(kt.plugins.multiplatform)
     alias(kt.plugins.multiplatform.android)
+
+    // Publishing
+    id("io.github.briangits.events.integration.conventions.publishing")
 }
 
 kotlin {
@@ -40,4 +43,9 @@ kotlin {
     linuxArm64()
 
     mingwX64()
+}
+
+library {
+    name = "annotations"
+    description = "Annotations for defining events.kt integration events"
 }

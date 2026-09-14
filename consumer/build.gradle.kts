@@ -7,6 +7,9 @@ plugins {
 
     // Serialization
     alias(kotlinx.plugins.serialization)
+
+    // Publishing
+    id("io.github.briangits.events.integration.conventions.publishing")
 }
 
 kotlin {
@@ -68,4 +71,9 @@ kotlin {
             implementation(kotlinx.coroutines.test)
         }
     }
+}
+
+library {
+    name = "consumer"
+    description = "Broker-agnostic consumer API for events.kt integration events"
 }
