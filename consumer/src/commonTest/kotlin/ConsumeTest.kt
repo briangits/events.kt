@@ -31,7 +31,7 @@ class ConsumeTest {
 
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun `consume() filters unmatched events`() = runTest {
+    fun `consume filters unmatched events`() = runTest {
         val (consumer, relay) = createConsumer()
         val message = createMessage(TestEvent(id = 1L), eventName = testEvent.name)
         val otherMessage = createMessage(TestEvent(id = 2L), eventName = "other")
