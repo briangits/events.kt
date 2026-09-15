@@ -1,12 +1,14 @@
 package io.github.briangits.events.integration.conventions.publishing
 
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.MavenPublishPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.repositories
 
 class PublishPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -19,6 +21,14 @@ class PublishPlugin : Plugin<Project> {
                 version.convention(project.version.toString())
 
                 description.convention("")
+            }
+
+            project.extensions.configure<PublishingExtension> {
+                repositories {
+                    with(it) {
+                        mavenLocal()
+                    }
+                }
             }
 
             afterEvaluate {

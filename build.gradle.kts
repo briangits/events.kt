@@ -40,3 +40,11 @@ subprojects {
         }
     }
 }
+
+tasks.register("publishToMavenLocal") {
+    subprojects.forEach { subproject ->
+        subproject.tasks.matching {
+            it.name == "publishToMavenLocal"
+        }.let { it -> dependsOn(it) }
+    }
+}
