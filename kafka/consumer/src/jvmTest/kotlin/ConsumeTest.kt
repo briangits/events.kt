@@ -24,8 +24,10 @@ class ConsumeTest {
             headers = headers.mapValues { it.value.encodeToByteArray() }
         )
 
-        val message = consumer.consume(Route(topic = topic)).first()
+        val messages = consumer.consume(Route(topic = topic))
         consumer.start()
+
+        val message = messages.first()
 
         assertEquals(messageKey, message.key)
         assertEquals(payload, message.data.decodeToString())
