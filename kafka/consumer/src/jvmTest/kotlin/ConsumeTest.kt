@@ -1,5 +1,8 @@
+
+import io.github.briangits.events.integration.broker.Message
 import io.github.briangits.events.integration.broker.Route
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -24,10 +27,16 @@ class ConsumeTest {
             headers = headers.mapValues { it.value.encodeToByteArray() }
         )
 
-        val messages = consumer.consume(Route(topic = topic))
+        val _message = CompletableDeferred<Message>()
+        backgroundScope.launch {
+            consumer.consume(Route(topic = topic)) {
+                _message.complete(it)
+            }
+        }
+
         consumer.start()
 
-        val message = messages.first()
+        val message = _message.await()
 
         assertEquals(messageKey, message.key)
         assertEquals(payload, message.data.decodeToString())

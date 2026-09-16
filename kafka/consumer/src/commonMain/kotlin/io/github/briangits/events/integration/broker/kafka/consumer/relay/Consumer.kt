@@ -1,14 +1,13 @@
 package io.github.briangits.events.integration.broker.kafka.consumer.relay
 
-import io.github.briangits.events.integration.broker.Message
 import io.github.briangits.events.integration.broker.Route
-import kotlinx.coroutines.flow.Flow
+import io.github.briangits.events.integration.broker.consumer.Handler
 
 internal interface Consumer {
     suspend fun start()
     suspend fun close()
 
-    suspend fun consume(route: Route): Flow<Message>
+    suspend fun consume(route: Route, handler: Handler)
 }
 
 internal expect fun Consumer(options: ConsumerOptions): Consumer

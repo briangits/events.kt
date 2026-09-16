@@ -35,7 +35,7 @@ class KafkaConsumer(
         route: Route,
         handler: Handler
     ) {
-        consumer.consume(route).collect { message ->
+        consumer.consume(route) { message ->
             var attempts = 0
             val maxAttempts = config.retries.attempts
 

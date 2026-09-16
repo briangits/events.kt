@@ -11,7 +11,7 @@ class ConsumerLifecycleTest {
         consumer.close()
 
         assertFailsWith<IllegalStateException> {
-            consumer.consume(route = Route(topic = Uuid.random().toString()))
+            consumer.consume(route = Route(topic = Uuid.random().toString())) { }
         }
     }
 }

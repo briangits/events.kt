@@ -2,6 +2,7 @@ package io.github.briangits.events.integration.broker.kafka.consumer.relay
 
 import io.github.briangits.events.integration.broker.Message
 import io.github.briangits.events.integration.broker.Route
+import io.github.briangits.events.integration.broker.consumer.Handler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -10,9 +11,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -169,25 +168,24 @@ internal actual fun Consumer(options: ConsumerOptions): Consumer =
             return lastSuccessfulOffset?.let { OffsetAndMetadata(it + 1) }
         }
 
-        override suspend fun consume(route: Route): Flow<Message> {
+        override suspend fun consume(route: Route, handler: Handler) {
             check(!closed) { "Attempt to consume events after closing the consumer" }
 
             val channel = Channel<Delivery>(Channel.RENDEZVOUS)
             subscriptions.computeIfAbsent(route.topic) { CopyOnWriteArrayList() }
                 .add(channel)
 
-            return flow {
-                channel.consumeAsFlow().collect { delivery ->
+            channel.consumeAsFlow()
+                .onCompletion { subscriptions[route.topic]?.remove(channel) }
+                .collect { delivery ->
                     try {
-                        emit(delivery.message)
+                        handler(delivery.message)
                         delivery.ack()
                     } catch (e: Throwable) {
                         delivery.nack(e)
+                        throw e
                     }
                 }
-            }.onCompletion {
-                subscriptions[route.topic]?.remove(channel)
-            }
         }
 
         override suspend fun close() = withContext(kafkaDispatcher) {
