@@ -48,9 +48,9 @@ class Consumer(
 
         val eventName = config.serializer.serialize(definition.name)
 
-        consumer.consume(route = Route(topic = definition.topic)) {
+        consumer.subscribe(route = Route(topic = definition.topic)) {
             val name = it.metadata["eventName"]
-            if (!name.contentEquals(eventName)) return@consume
+            if (!name.contentEquals(eventName)) return@subscribe
 
             @Suppress("UNCHECKED_CAST")
             val event = config.serializer.deserialize(it.data, serializer(type.type)) as T

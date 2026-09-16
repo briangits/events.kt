@@ -24,7 +24,7 @@ class TestMessageConsumer : MessageConsumer {
         isStarted = false
     }
 
-    override suspend fun consume(route: Route, handler: Handler) {
+    override suspend fun subscribe(route: Route, handler: Handler) {
         check(!isClosed) { "Cannot consume from a closed consumer" }
 
         getOrCreateFlow(route.topic).asSharedFlow().collect {

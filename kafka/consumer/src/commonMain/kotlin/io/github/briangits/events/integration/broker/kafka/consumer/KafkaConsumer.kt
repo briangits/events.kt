@@ -28,7 +28,7 @@ class KafkaConsumer(
 
     override suspend fun close() = consumer.close()
 
-    override suspend fun consume(
+    override suspend fun subscribe(
         route: Route,
         handler: Handler
     ) {
