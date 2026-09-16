@@ -11,7 +11,7 @@ class LifecycleTest {
         relay.close()
 
         assertFailsWith<IllegalStateException> {
-            consumer.consume(eventType<TestEvent>())
+            consumer.consume(eventType<TestEvent>()) { _, _ -> }
         }
     }
 }

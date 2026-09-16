@@ -8,5 +8,5 @@ interface MessageConsumer {
     suspend fun start()
     suspend fun close()
 
-    suspend fun consume(route: Route): Flow<Message>
+    suspend fun consume(route: Route, handler: Handler)
 }

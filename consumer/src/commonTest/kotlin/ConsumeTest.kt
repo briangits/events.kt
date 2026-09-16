@@ -4,6 +4,7 @@ import io.github.briangits.events.integration.consumer.Event
 import io.github.briangits.events.integration.eventType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -19,7 +20,13 @@ class ConsumeTest {
         val eventData = TestEvent(id = 42L)
         val message = createMessage(eventData)
 
-        val flow = consumer.consume(eventType<TestEvent>())
+        val flow = flow {
+            consumer.consume(eventType<TestEvent>()) { event, metadata ->
+                val event = Event(event, metadata)
+
+                emit(event)
+            }
+        }
 
         backgroundScope.launch {
             relay.emit(message)
@@ -38,7 +45,11 @@ class ConsumeTest {
 
         val received = mutableListOf<Event<TestEvent>>()
         backgroundScope.launch {
-            consumer.consume(eventType<TestEvent>()).collect { received.add(it) }
+            consumer.consume(eventType<TestEvent>()) { event, metadata ->
+                val event = Event(event, metadata)
+
+                received.add(event)
+            }
         }
 
         backgroundScope.launch {
@@ -58,7 +69,7 @@ class ConsumeTest {
         val consumer = Consumer(relay)
 
         val exception = assertFailsWith<IllegalStateException> {
-            consumer.consume(eventType<TestEvent>())
+            consumer.consume(eventType<TestEvent>()) { _, _, -> }
         }
 
         assertTrue(exception.message!!.contains("No event definition found"))

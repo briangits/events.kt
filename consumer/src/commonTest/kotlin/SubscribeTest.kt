@@ -46,8 +46,8 @@ class SubscribeTest {
         val (consumer, relay) = createConsumer()
         val received = mutableListOf<TestEvent>()
 
-        val job = consumer.subscribe<TestEvent>(scope = backgroundScope) { data, _ ->
-            received.add(data)
+        val job = consumer.subscribe<TestEvent>(scope = backgroundScope) { event ->
+            received.add(event)
         }
 
         relay.emit(createMessage(TestEvent(id = 1L)))
@@ -68,8 +68,8 @@ class SubscribeTest {
         val scope = CoroutineScope(Dispatchers.Default)
         val received = mutableListOf<TestEvent>()
 
-        val job = consumer.subscribe<TestEvent>(scope) { data, _ ->
-            received.add(data)
+        val job = consumer.subscribe<TestEvent>(scope) { event ->
+            received.add(event)
         }
 
         relay.emit(createMessage(TestEvent(id = 10L)))
@@ -93,11 +93,11 @@ class SubscribeTest {
         val subscriber1Events = mutableListOf<TestEvent>()
         val subscriber2Events = mutableListOf<TestEvent>()
 
-        val job1 = consumer.subscribe<TestEvent>(scope = backgroundScope) { data, _ ->
-            subscriber1Events.add(data)
+        val job1 = consumer.subscribe<TestEvent>(scope = backgroundScope) { event ->
+            subscriber1Events.add(event)
         }
-        val job2 = consumer.subscribe<TestEvent>(scope = backgroundScope) { data, _ ->
-            subscriber2Events.add(data)
+        val job2 = consumer.subscribe<TestEvent>(scope = backgroundScope) { event ->
+            subscriber2Events.add(event)
         }
 
         relay.emit(createMessage(TestEvent(id = 500L)))

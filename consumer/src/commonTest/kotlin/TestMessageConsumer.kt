@@ -1,8 +1,8 @@
 
 import io.github.briangits.events.integration.broker.Message
 import io.github.briangits.events.integration.broker.Route
+import io.github.briangits.events.integration.broker.consumer.Handler
 import io.github.briangits.events.integration.broker.consumer.MessageConsumer
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -24,9 +24,12 @@ class TestMessageConsumer : MessageConsumer {
         isStarted = false
     }
 
-    override suspend fun consume(route: Route): Flow<Message> {
+    override suspend fun consume(route: Route, handler: Handler) {
         check(!isClosed) { "Cannot consume from a closed consumer" }
-        return getOrCreateFlow(route.topic).asSharedFlow()
+
+        getOrCreateFlow(route.topic).asSharedFlow().collect {
+            handler(it)
+        }
     }
 
     suspend fun emit(message: Message) {

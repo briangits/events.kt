@@ -1,11 +1,10 @@
 package io.github.briangits.events.integration.broker.kafka.consumer
 
-import io.github.briangits.events.integration.broker.Message
 import io.github.briangits.events.integration.broker.Route
+import io.github.briangits.events.integration.broker.consumer.Handler
 import io.github.briangits.events.integration.broker.consumer.MessageConsumer
 import io.github.briangits.events.integration.broker.kafka.consumer.relay.Consumer
 import io.github.briangits.events.integration.broker.kafka.consumer.relay.ConsumerOptions
-import kotlinx.coroutines.flow.Flow
 
 class KafkaConsumer(
     val brokers: List<String>,
@@ -29,5 +28,12 @@ class KafkaConsumer(
 
     override suspend fun close() = consumer.close()
 
-    override suspend fun consume(route: Route): Flow<Message> = consumer.consume(route)
+    override suspend fun consume(
+        route: Route,
+        handler: Handler
+    ) {
+        consumer.consume(route).collect {
+            handler(it)
+        }
+    }
 }
