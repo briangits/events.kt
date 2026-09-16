@@ -6,14 +6,13 @@ import kotlinx.coroutines.CompletableDeferred
 class Delivery(
     val message: Message,
 ) {
+    private val result = CompletableDeferred<Unit>()
 
-    enum class Result { Success, Failed }
-    
-    private val result = CompletableDeferred<Result>()
+    fun ack()  { result.complete(Unit) }
 
-    fun ack()  { result.complete(Result.Success) }
-
-    fun nack() { result.complete(Result.Failed) }
+    fun nack(e: Throwable) {
+        result.completeExceptionally(e)
+    }
 
     suspend fun await() = result.await()
 }

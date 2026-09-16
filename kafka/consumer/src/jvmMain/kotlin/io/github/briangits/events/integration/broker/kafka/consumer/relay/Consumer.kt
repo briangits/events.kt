@@ -153,14 +153,17 @@ internal actual fun Consumer(options: ConsumerOptions): Consumer =
                             delivery.await()
                         }
 
-                        return@async result.getOrElse { Delivery.Result.Failed }
+                        return@async result.isSuccess
                     }
                 }
 
-                val success = processingJobs.awaitAll().all { it == Delivery.Result.Success }
+                val success = processingJobs.awaitAll().all { it }
 
                 if (success) lastSuccessfulOffset = record.offset()
-                else break
+                else {
+                    consumer.pause(listOf(partition))
+                    break
+                }
             }
 
             return lastSuccessfulOffset?.let { OffsetAndMetadata(it + 1) }
@@ -179,8 +182,7 @@ internal actual fun Consumer(options: ConsumerOptions): Consumer =
                         emit(delivery.message)
                         delivery.ack()
                     } catch (e: Throwable) {
-                        delivery.nack()
-                        throw e
+                        delivery.nack(e)
                     }
                 }
             }.onCompletion {

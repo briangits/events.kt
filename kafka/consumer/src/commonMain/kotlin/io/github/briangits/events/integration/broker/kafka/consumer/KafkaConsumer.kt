@@ -3,15 +3,18 @@ package io.github.briangits.events.integration.broker.kafka.consumer
 import io.github.briangits.events.integration.broker.Route
 import io.github.briangits.events.integration.broker.consumer.Handler
 import io.github.briangits.events.integration.broker.consumer.MessageConsumer
+import io.github.briangits.events.integration.broker.kafka.consumer.config.KafkaConsumerConfig
 import io.github.briangits.events.integration.broker.kafka.consumer.relay.Consumer
 import io.github.briangits.events.integration.broker.kafka.consumer.relay.ConsumerOptions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
 
 class KafkaConsumer(
     val brokers: List<String>,
     val groupId: String,
-    config: KafkaConsumerConfig.() -> Unit = {}
+    configBlock: KafkaConsumerConfig.() -> Unit = {}
 ) : MessageConsumer {
-    private val config = KafkaConsumerConfig(brokers, groupId) { config() }
+    private val config = KafkaConsumerConfig(brokers, groupId) { configBlock() }
     private val consumer: Consumer by lazy {
         val config = ConsumerOptions(
             brokers = this.config.brokers,
@@ -32,8 +35,26 @@ class KafkaConsumer(
         route: Route,
         handler: Handler
     ) {
-        consumer.consume(route).collect {
-            handler(it)
+        consumer.consume(route).collect { message ->
+            var attempts = 0
+            val maxAttempts = config.retries.attempts
+
+            do {
+                try {
+                    handler(message)
+                    break
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    attempts++
+
+                    if (attempts >= maxAttempts) {
+                        withContext(config.dispatcher) {
+                            config.retries.dlq(e, message)
+                        }
+                    }
+                }
+            } while (attempts < maxAttempts)
         }
     }
 }
