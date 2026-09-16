@@ -9,7 +9,6 @@ import io.github.briangits.events.integration.eventType
 import io.github.briangits.events.integration.metadata.Metadata
 import io.github.briangits.events.integration.serialization.serialize
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
@@ -22,83 +21,81 @@ import kotlinx.serialization.serializer
  * @param config An optional configuration block for the consumer.
  */
 class Consumer(
-    val consumer: MessageConsumer,
+    private val consumer: MessageConsumer,
     config: ConsumerConfig.() -> Unit = {}
 ) : IntegrationEventRegistry() {
     private val config = ConsumerConfig { config() }
 
     /**
-     * Consumes integration events of a specific type.
-     *
-     * This method looks up the [IntegrationEventDefinition] for the given [type],
-     * filters messages from the [consumer] based on the event name, and deserializes
-     * the message data into an [Event] object.
+     * Subscribes to integration events of the specified [type].
      *
      * @param T The type of the integration event.
      * @param type The [EventType] of the event.
-     * @throws IllegalStateException If no event definition is found for the given [type].
+     * @param scope An optional [CoroutineScope] to launch the subscription in.
+     *   If not provided, the current coroutine context scope is used.
+     * @return A [Job] representing the subscription's coroutine.
+     * @throws IllegalArgumentException If no event definition exists for the given [type].
      */
-    suspend fun <T : Any> consume(
+    suspend fun <T : Any> subscribe(
         type: EventType<T>,
+        scope: CoroutineScope? = null,
         block: suspend (data: T, metadata: Metadata) -> Unit
-    ) {
+    ): Job {
         @Suppress("UNCHECKED_CAST")
         val definition = events[type] as? IntegrationEventDefinition<T>
-            ?: error("No event definition found for ${type.eventClass.simpleName}")
+        requireNotNull(definition) {
+            "No event definition found for ${type.eventClass.simpleName}"
+        }
 
         val eventName = config.serializer.serialize(definition.name)
 
-        consumer.subscribe(route = Route(topic = definition.topic)) {
-            val name = it.metadata["eventName"]
-            if (!name.contentEquals(eventName)) return@subscribe
+        val subscriptionScope = scope ?: CoroutineScope(currentCoroutineContext())
 
-            @Suppress("UNCHECKED_CAST")
-            val event = config.serializer.deserialize(it.data, serializer(type.type)) as T
-            val metadata = Metadata(config.serializer, it.metadata)
+        return subscriptionScope.launch {
+            consumer.subscribe(route = Route(topic = definition.topic)) {
+                val name = it.metadata["eventName"]
+                if (!name.contentEquals(eventName)) return@subscribe
 
-            block(event, metadata)
+                @Suppress("UNCHECKED_CAST")
+                val event = config.serializer.deserialize(it.data, serializer(type.type)) as T
+                val metadata = Metadata(config.serializer, it.metadata)
+
+                block(event, metadata)
+            }
         }
     }
-}
 
-/**
- * Subscribes to integration events of type [T].
- *
- * This is a convenience method that launches a coroutine to [consume] events of type [T]
- * and invokes the provided [block] for each event.
- *
- * @param T The type of the integration event.
- * @param scope An optional [CoroutineScope] to launch the subscription in. If not provided, 
- *   the current coroutine context scope is used.
- * @param block A callback function to handle received events.
- * @return A [Job] representing the subscription's coroutine.
- */
-suspend inline fun <reified T : Any> Consumer.subscribe(
-    scope: CoroutineScope? = null,
-    crossinline block: suspend (data: T, metadata: Metadata) -> Unit
-): Job {
-    val subscriptionScope = scope ?: CoroutineScope(currentCoroutineContext())
-
-    return subscriptionScope.launch(start = CoroutineStart.UNDISPATCHED) {
-        consume(type = eventType<T>()) { event, metadata ->
-            block(event, metadata)
-        }
+    /**
+     * Subscribes to integration events of type [T],
+     * deriving the [EventType] from the reified type [T].
+     *
+     * @param T The type of the integration event.
+     * @param scope An optional [CoroutineScope] to launch the subscription in.
+     *   If not provided, the current coroutine context scope is used.
+     * @param block A callback function to handle received events.
+     * @return A [Job] representing the subscription's coroutine.
+     * @throws IllegalArgumentException If no event definition exists for the type [T].
+     */
+    suspend inline fun <reified T : Any> Consumer.subscribe(
+        scope: CoroutineScope? = null,
+        crossinline block: suspend (data: T, metadata: Metadata) -> Unit
+    ): Job = subscribe(type = eventType<T>(), scope) { event, metadata ->
+        block(event, metadata)
     }
-}
 
-/**
- * Subscribes to integration events of type [T].
- *
- * This is a convenience method that launches a coroutine to [consume] events of type [T]
- * and invokes the provided [block] for each event.
- *
- * @param T The type of the integration event.
- * @param scope An optional [CoroutineScope] to launch the subscription in. If not provided,
- *   the current coroutine context scope is used.
- * @param block A callback function to handle received events.
- * @return A [Job] representing the subscription's coroutine.
- */
-suspend inline fun <reified T : Any> Consumer.subscribe(
-    scope: CoroutineScope? = null,
-    crossinline block: suspend (data: T) -> Unit
-): Job = subscribe<T>(scope) { event, _ -> block(event) }
+    /**
+     * Subscribes to integration events of type [T],
+     * deriving the [EventType] from the reified type [T].
+     *
+     * @param T The type of the integration event.
+     * @param scope An optional [CoroutineScope] to launch the subscription in. If not provided,
+     *   the current coroutine context scope is used.
+     * @param block A callback function to handle received events.
+     * @return A [Job] representing the subscription's coroutine.
+     * @throws IllegalArgumentException If no event definition exists for the given [type].
+     */
+    suspend inline fun <reified T : Any> Consumer.subscribe(
+        scope: CoroutineScope? = null,
+        crossinline block: suspend (data: T) -> Unit
+    ): Job = subscribe<T>(scope) { event, _ -> block(event) }
+}

@@ -21,7 +21,7 @@ class ConsumeTest {
         val message = createMessage(eventData)
 
         val flow = flow {
-            consumer.consume(eventType<TestEvent>()) { event, metadata ->
+            consumer.subscribe(eventType<TestEvent>()) { event, metadata ->
                 val event = Event(event, metadata)
 
                 emit(event)
@@ -45,7 +45,7 @@ class ConsumeTest {
 
         val received = mutableListOf<Event<TestEvent>>()
         backgroundScope.launch {
-            consumer.consume(eventType<TestEvent>()) { event, metadata ->
+            consumer.subscribe(eventType<TestEvent>()) { event, metadata ->
                 val event = Event(event, metadata)
 
                 received.add(event)
@@ -69,7 +69,7 @@ class ConsumeTest {
         val consumer = Consumer(relay)
 
         val exception = assertFailsWith<IllegalStateException> {
-            consumer.consume(eventType<TestEvent>()) { _, _, -> }
+            consumer.subscribe(eventType<TestEvent>()) { _, _, -> }
         }
 
         assertTrue(exception.message!!.contains("No event definition found"))
