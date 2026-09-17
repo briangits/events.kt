@@ -1,15 +1,19 @@
 
-import io.github.briangits.events.integration.consumer.subscribe
+import io.github.briangits.events.integration.consumer.Consumer
+import io.github.briangits.events.integration.consumer.Event
+import io.github.briangits.events.integration.eventType
 import io.github.briangits.events.integration.metadata.Metadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class SubscribeTest {
@@ -38,6 +42,33 @@ class SubscribeTest {
         assertEquals("value", metadata["key"])
 
         job.cancel()
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun `subscriptions filter unmatched events`() = runTest {
+        val (consumer, relay) = createConsumer()
+        val message = createMessage(TestEvent(id = 1L), eventName = testEvent.name)
+        val otherMessage = createMessage(TestEvent(id = 2L), eventName = "other")
+
+        val received = mutableListOf<io.github.briangits.events.integration.consumer.Event<TestEvent>>()
+        backgroundScope.launch {
+            consumer.subscribe(eventType<TestEvent>()) { event, metadata ->
+                val event = Event(event, metadata)
+
+                received.add(event)
+            }
+        }
+
+        backgroundScope.launch {
+            relay.emit(message)
+            relay.emit(otherMessage)
+        }
+
+        runCurrent()
+
+        assertEquals(1, received.size)
+        assertEquals(1L, received.first().data.id)
     }
 
     @Test
@@ -110,5 +141,17 @@ class SubscribeTest {
 
         job1.cancel()
         job2.cancel()
+    }
+
+    @Test
+    fun `subscribing to unregistered events`() = runTest {
+        val relay = TestMessageConsumer()
+        val consumer = Consumer(relay)
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            consumer.subscribe(eventType<TestEvent>()) { _, _, -> }
+        }
+
+        assertTrue(exception.message!!.contains("No event definition found"))
     }
 }
