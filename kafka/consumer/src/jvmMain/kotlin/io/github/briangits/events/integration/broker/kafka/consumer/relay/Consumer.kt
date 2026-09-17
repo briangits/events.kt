@@ -190,15 +190,17 @@ internal actual fun Consumer(options: ConsumerOptions): Consumer =
                 }
         }
 
-        override suspend fun close() = withContext(kafkaDispatcher) {
-            if (closed) return@withContext
+        override suspend fun close() {
+            if (closed) return
             closed = true
 
             if (started) consumer.wakeup()
 
-            subscriptions.values.flatten().forEach { it.close() }
-            processingScope.cancel()
+            withContext(kafkaDispatcher) {
+                subscriptions.values.flatten().forEach { it.close() }
+                processingScope.cancel()
 
-            consumer.close()
+                consumer.close()
+            }
         }
     }
