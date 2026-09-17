@@ -6,26 +6,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
 
 class ConsumeTest {
     @Test
-    fun `consuming messages`() = runTest {
+    fun `consuming messages`() = runTest(timeout = 5.minutes) {
         val topic = Uuid.random().toString()
-        val producer = createProducer()
 
         val consumer = createConsumer()
 
         val messageKey = Uuid.random().toString()
         val payload = "This is a test message"
         val headers = mapOf("messageType" to "TestMessage")
-
-        producer.send(
-            topic = topic,
-            key = messageKey,
-            payload = payload.encodeToByteArray(),
-            headers = headers.mapValues { it.value.encodeToByteArray() }
-        )
 
         val _message = CompletableDeferred<Message>()
         backgroundScope.launch {
@@ -36,6 +29,18 @@ class ConsumeTest {
 
         consumer.start()
 
+        backgroundScope.launch {
+            val producer = createProducer()
+            producer.use {
+                it.send(
+                    topic = topic,
+                    key = messageKey,
+                    payload = payload.encodeToByteArray(),
+                    headers = headers.mapValues { it.value.encodeToByteArray() }
+                )
+            }
+        }
+
         val message = _message.await()
 
         assertEquals(messageKey, message.key)
@@ -45,7 +50,6 @@ class ConsumeTest {
             assertEquals(value, message.metadata[key]?.decodeToString())
         }
 
-        producer.close()
         consumer.close()
     }
 }
