@@ -9,6 +9,7 @@ import io.github.briangits.events.integration.eventType
 import io.github.briangits.events.integration.metadata.Metadata
 import io.github.briangits.events.integration.serialization.serialize
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
@@ -51,7 +52,7 @@ class Consumer(
 
         val subscriptionScope = scope ?: CoroutineScope(currentCoroutineContext())
 
-        return subscriptionScope.launch {
+        return subscriptionScope.launch(start = CoroutineStart.UNDISPATCHED) {
             consumer.subscribe(route = Route(topic = definition.topic)) {
                 val name = it.metadata["eventName"]
                 if (!name.contentEquals(eventName)) return@subscribe
@@ -76,7 +77,7 @@ class Consumer(
      * @return A [Job] representing the subscription's coroutine.
      * @throws IllegalArgumentException If no event definition exists for the type [T].
      */
-    suspend inline fun <reified T : Any> Consumer.subscribe(
+    suspend inline fun <reified T : Any> subscribe(
         scope: CoroutineScope? = null,
         crossinline block: suspend (data: T, metadata: Metadata) -> Unit
     ): Job = subscribe(type = eventType<T>(), scope) { event, metadata ->
@@ -92,9 +93,9 @@ class Consumer(
      *   the current coroutine context scope is used.
      * @param block A callback function to handle received events.
      * @return A [Job] representing the subscription's coroutine.
-     * @throws IllegalArgumentException If no event definition exists for the given [type].
+     * @throws IllegalArgumentException If no event definition exists for the type [T].
      */
-    suspend inline fun <reified T : Any> Consumer.subscribe(
+    suspend inline fun <reified T : Any> subscribe(
         scope: CoroutineScope? = null,
         crossinline block: suspend (data: T) -> Unit
     ): Job = subscribe<T>(scope) { event, _ -> block(event) }
