@@ -58,7 +58,9 @@ internal actual fun Consumer(options: ConsumerOptions): Consumer =
 
         @Volatile var subscribedTopics: Set<String> = emptySet()
 
-        val consumer = KafkaConsumer<ByteArray, ByteArray>(createConfig(options))
+        val consumer by lazy {
+            KafkaConsumer<ByteArray, ByteArray>(createConfig(options))
+        }
 
         private val subscriptions = Subscriptions()
 
